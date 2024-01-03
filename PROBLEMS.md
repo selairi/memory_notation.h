@@ -141,7 +141,7 @@ Wrong code:
 
 Solution:
 
-Check array boundaries or use and object to get or set array elements:
+Check array boundaries or use an object to get or set array elements:
 
     // Object that controls an array
     struct Array {
@@ -179,7 +179,7 @@ Check array boundaries or use and object to get or set array elements:
     struct Array *a = array_new(3, strdup("a"));
     array_set(a, 2, 2);
     struct Array *b = array_new(3, strdup("b"));
-    array_set(b, 3, 2); // Program stops with a warning.
+    array_set(b, 3, 2); // Program stops with a message warning.
 
 ## Wrong casting
 
