@@ -222,11 +222,13 @@ Solution:
 1. Check the code and remember to release resources before all "return" and check cycle of life of each pointer.
 2. Use [the cleanup attribute](http://omeranson.github.io/blog/2022/06/12/cleanup-attribute-in-C).
 
+Example:
+
     void array_free(int **p) {
         free(*p);
         *p = NULL;
     }
-    
+      
     void function6(int a) {
         __attribute__((cleanup(array_free))) int *b = (int *)malloc(sizeof(int));
         *b = a;
