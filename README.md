@@ -127,6 +127,44 @@ Reference counting example:
     // Use p
     refcount_unref(p);
 
+# **memory_take_possession**
+
+When is refereed to a pointer returned by a function, it means that you have to control the cycle of life of that pointer:
+
+    memory_take_possession char *strdup(memory_guarded const char *str); 
+
+But when is refereed to a function argument means that the function will control the cycle of life of that pointer:
+
+    void function5(memory_take_possession int *a) {
+        // Use a
+        free(a);
+    }
+
+# **memory_keep_alive** and **memory_release_after_of(mem)**
+
+There are objects that need other objects while they are alive.
+
+- **memory_keep_alive**: The pointer must not be freed until the present object finishes.
+
+Imagine that you are using an image library that renders a final photo. The object that renders the final photo could need other images. Those images could not be freed until the final image is rendered. 
+
+Example:
+
+    struct Image { ... };
+    struct ImageBuilder { ... };
+    void image_builder_add_resource(
+        struct ImageBuilder *builder memory_guarded, 
+        struct Image *resource memory_keep_alive);
+    
+    // ...
+    
+    struct Image *img = image_new_from_file("file.png");
+    struct ImageBuilder *builder = image_builder_new();
+    image_builder_add_resource(builder, img memory_release_after_of(builder));
+    // free(img); -> Error the image is need until render
+    image_builder_render(builder);
+    free(img);
+
 
 # Returning values as function arguments
 

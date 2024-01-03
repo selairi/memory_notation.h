@@ -46,6 +46,8 @@
 #define memory_guarded
 #define memory_owner
 #define memory_take_possession
+#define memory_keep_alive
+#define memory_release_after_of(mem)
 #define memory_owner_of(mem)
 #define memory_ref_count
 #define memory_ptr_inout
