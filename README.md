@@ -193,3 +193,6 @@ There are a short version of all tags:
 - m_io
 - m_out
 
+# Common problems and solutions
+
+Please read [PROBLEMS.md](PROBLEMS.md) file.
