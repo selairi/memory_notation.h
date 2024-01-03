@@ -45,7 +45,7 @@
 
 #define memory_guarded
 #define memory_owner
-#define memory_take_possesion
+#define memory_take_possession
 #define memory_owner_of(mem)
 #define memory_ref_count
 #define memory_ptr_inout
@@ -66,9 +66,9 @@
 // 	memory_owner   char *id;     // This object must be freed by this object
 // };
 // 
-// memory_take_possesion struct Example *example_new(
+// memory_take_possession struct Example *example_new(
 //     memory_guarded        char *name, 
-//     memory_take_possesion char *id
+//     memory_take_possession char *id
 // ) 
 // {
 // 	struct Example *ex = (struct Example *)malloc(sizeof(struct Example));
