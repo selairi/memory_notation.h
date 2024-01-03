@@ -55,7 +55,9 @@
 #define m_o
 #define m_t
 #define m_o_(mem)
-#define m_r
+#define m_rc
+#define m_io
+#define m_out
 
 #define memory_cleanup_(f) __attribute__((cleanup(f)))
 

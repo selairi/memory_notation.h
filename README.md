@@ -36,23 +36,63 @@ Copy "src/memory_notation.h" file to your project and include it.
 1. Memory refereed by a pointer has an owner that controls its cycle of life.
 2. Memory refereed by a pointer has a reference counting system or garbage collector.
 
-## For memory owner method
+## 1. For memory owner method
 For memory owner method use tags:
 - **memory_guarded**: Memory has an owner then don't free it.
 - **memory_owner**: This object is the owner of memory refereed by the pointer.
 - **memory_take_possession**: The memory refereed by the pointer, has no owner. You have to control the cycle of life of that memory.
 
-## For reference counting system or garbage collector
+## 2. For reference counting system or garbage collector
 For reference counting system or garbage collector use "**memory_ref_count**" tag. Example:
 
     memory_ref_count Object *strange_function();
-    void object_ref(memory_ref_count Object *o);
-    void object_unref(memory_ref_count Object *o);
+    void object_ref(memory_ref_count Object *o); // Must be run when Object pointer is gotten.
+    void object_unref(memory_ref_count Object *o); // Must be run when Object pointer is released.
 
     // ... Code ...
 
     Object *o = strange_function();
+    object_ref(o);
+    // Use o
+    object_unref(o);
 
+# Examples
+
+Memory owner method example:
+
+    struct Example {
+    	memory_guarded char *name; // This pointer must not be freed by this object
+    	memory_owner   char *id;     // This object must be freed by this object
+    };
+    
+    memory_take_possession struct Example *example_new(
+        memory_guarded        char *name, 
+        memory_take_possession char *id
+    ) 
+    {
+    	struct Example *ex = (struct Example *)malloc(sizeof(struct Example));
+    	ex->name = name; ex->id = id;
+    	return ex;
+    }
+    
+    void example_delete(memory_owner struct Example *ex) {
+    	free(ex->id);
+    	free(ex);
+    }
+    
+    memory_guarded char *example_id(memory_guarded struct Example *ex) {
+    	return ex->id;
+    }
+    
+    int main() {
+      const char *name = "Hello";
+      struct Example *ex = example_new((char*)name, strdup("World"));
+      printf("%s\n", example_id(ex));
+      example_delete(ex);
+    }
+
+
+Reference counting example:
 
     struct RefCount {
         int count;
@@ -87,37 +127,69 @@ For reference counting system or garbage collector use "**memory_ref_count**" ta
     // Use p
     refcount_unref(p);
 
-# Example
 
-Example:
+# Returning values as function arguments
 
-    struct Example {
-    	memory_guarded char *name; // This pointer must not be freed by this object
-    	memory_owner   char *id;     // This object must be freed by this object
-    };
+Sometimes function arguments are used to return values:
     
-    memory_take_possession struct Example *example_new(
-        memory_guarded        char *name, 
-        memory_take_possession char *id
-    ) 
-    {
-    	struct Example *ex = (struct Example *)malloc(sizeof(struct Example));
-    	ex->name = name; ex->id = id;
-    	return ex;
+    void function3(int a, int *b, int *c) {
+        *b *= 2;
+        *c = a + *b;
     }
-    
-    void example_delete(memory_owner struct Example *ex) {
-    	free(ex->id);
-    	free(ex);
+
+Then these tags must be used:
+   
+- **memory_ptr_out**: Function argument is used to return values. 
+- **memory_ptr_inout**: Function argument is used to give values to the function and return values. 
+
+In the example:
+
+    void function3(
+        int a, 
+        int *b memory_guarded memory_ptr_inout, 
+        int *c memory_guarded memory_ptr_out 
+    ) {
+        *c = a + *b;
     }
-    
-    memory_guarded char *example_id(memory_guarded struct Example *ex) {
-    	return ex->id;
+
+More examples:
+
+    void function4(
+        int a,
+        int *b memory_take_possession memory_ptr_out
+    ) {
+        b = (int *)malloc(sizeof(int)*a);
     }
-    
-    int main() {
-      const char *name = "Hello";
-      struct Example *ex = example_new((char*)name, strdup("World"));
-      printf("%s\n", example_id(ex));
-      example_delete(ex);
-    }
+
+
+# memory_owner_of(mem)
+
+Sometimes several pointers can be refereed to the same memory. The code can be complicated and **memory_owner_of(mem)** could help:
+
+    int *b;
+    int a = 2 memory_owner_of(b);
+    b = &a;
+
+
+# Short version
+
+All tags are self explained, but is a long notation:
+
+- memory_guarded
+- memory_owner
+- memory_take_possession
+- memory_owner_of(mem)
+- memory_ref_count
+- memory_ptr_inout
+- memory_ptr_out
+
+There are a short version of all tags:
+
+- m_g
+- m_o
+- m_t
+- m_o_(mem)
+- m_rc
+- m_io
+- m_out
+
