@@ -26,7 +26,7 @@ Solution:
         return a;
     }
 
-Or better choice, because the stack is faster than "malloc":
+Or:
 
     void function1(memory_guarded memory_ptr_out int *a) {
         *a = 2;
@@ -77,6 +77,7 @@ Solutions:
 1. Use reference counting to control memory cycle of life.
 2. Remove previous free(pointer).
 3. Set pointer to NULL after free(pointer) and check if(pointer == NULL).
+4. Use **memory_keep_alive** and **memory_release_after_of(mem)** tags.
 
 ## Increase a pointer and release
 
@@ -180,4 +181,106 @@ Check array boundaries or use and object to get or set array elements:
     struct Array *b = array_new(3, strdup("b"));
     array_set(b, 3, 2); // Program stops with a warning.
 
+## Wrong casting
 
+C lets cast from every type with no compiler error.
+
+Wrong code:
+
+    struct Example {
+        int a;
+        char b;
+    };
+    int a;
+    struct Example *p = (struct Example *) &a;
+    p->b; // Error: p refers to "a" and "a" is an "int" no a "struct Example".
+
+Solution:
+
+Check types before cast.
+    
+## Memory leaks
+
+Memory which is no longer needed is not released.
+
+### Free after return
+
+Wrong code:
+
+    void function6(int a) {
+        int *b = (int *)malloc(sizeof(int));
+        *b = a;
+        if(a < 10) {
+            // Function returns and b is not released.
+            return;
+        }
+        free(b);
+    }
+
+Solution:
+
+1. Check the code and remember to release resources before all "return" and check cycle of life of each pointer.
+2. Use [the cleanup attribute](http://omeranson.github.io/blog/2022/06/12/cleanup-attribute-in-C).
+
+    void array_free(int **p) {
+        free(*p);
+        *p = NULL;
+    }
+    
+    void function6(int a) {
+        __attribute__((cleanup(array_free))) int *b = (int *)malloc(sizeof(int));
+        *b = a;
+        if(a < 10) {
+            return;
+        }
+    }
+
+### Forget releasing memory
+
+Wrong code:
+
+    int main(void) {
+        int *a = (int *)malloc(sizeof(int));
+        // ...
+        return 0;
+        // a is not released.
+    }
+
+Solution:
+
+1. Insert free() before end of cycle of life of the pointer.
+2. Use [the cleanup attribute](http://omeranson.github.io/blog/2022/06/12/cleanup-attribute-in-C) on variable declaration.
+3. Use reference count.
+
+### free() instead the specialized function
+
+Wrong code:
+
+    struct String {
+        char *str memory_owner;
+        int size;
+    };
+
+    struct String *string_new(char *str memory_take_possession) {
+        struct String *s = (struct String*)malloc(sizeof(struct String));
+        s->str = str;
+        s->size = strlen(str);
+        return s;
+    }
+    
+    // Specialized function to release memory: 
+    void string_free(struct String *s memory_take_possession) {
+        free(s->str);
+        free(s);
+    }
+
+    // ... Code ...
+
+    struct String *s = string_new(strdup("Hello world"));
+    // ...
+    free(s);
+    // Error: s->str is not released
+
+Solution:
+
+Check objects and check is they have got a function to release memory or reference count.

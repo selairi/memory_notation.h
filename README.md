@@ -27,6 +27,20 @@ This function returns a pointer. Do you have to free this pointer?
     free(p1);
     // p2 will be freed in other place. Don't worry.
 
+The tags defined by "memory_notation.h" are:
+
+-**memory_guarded**
+-**memory_owner**
+-**memory_take_possession**
+-**memory_keep_alive**
+-**memory_release_after_of(mem)**
+-**memory_owner_of(mem)**
+-**memory_ref_count**
+-**memory_ptr_inout**
+-**memory_ptr_out**
+
+**WARNING**: This is only a notation. All tags are ignored by the compiler.
+
 # How to use it
 
 Copy "src/memory_notation.h" file to your project and include it.
