@@ -6,16 +6,21 @@ Imagine the following situation:
 
 You have to use the following function from a C library:
 
+```C
     int *function();
+```
 
 This function returns a pointer. Do you have to free this pointer?
 
+```C
     int *p = function();
     // ... Code ...
     free(p); // ??
+```
 
 "memory_notation.h" suggest a simple notation to fix this problem:
 
+```C
     memory_take_possession int *function1();
     memory_guarded int *function2();
 
@@ -26,18 +31,19 @@ This function returns a pointer. Do you have to free this pointer?
     // ... Code ...
     free(p1);
     // p2 will be freed in other place. Don't worry.
+```
 
 The tags defined by "memory_notation.h" are:
 
--**memory_guarded**
--**memory_owner**
--**memory_take_possession**
--**memory_keep_alive**
--**memory_release_after_of(mem)**
--**memory_owner_of(mem)**
--**memory_ref_count**
--**memory_ptr_inout**
--**memory_ptr_out**
+- **memory_guarded**
+- **memory_owner**
+- **memory_take_possession**
+- **memory_keep_alive**
+- **memory_release_after_of(mem)**
+- **memory_owner_of(mem)**
+- **memory_ref_count**
+- **memory_ptr_inout**
+- **memory_ptr_out**
 
 **WARNING**: This is only a notation. All tags are ignored by the compiler.
 
@@ -59,6 +65,7 @@ For memory owner method use tags:
 ## 2. For reference counting system or garbage collector
 For reference counting system or garbage collector use "**memory_ref_count**" tag. Example:
 
+```C
     memory_ref_count Object *strange_function();
     void object_ref(memory_ref_count Object *o); // Must be run when Object pointer is gotten.
     void object_unref(memory_ref_count Object *o); // Must be run when Object pointer is released.
@@ -68,12 +75,14 @@ For reference counting system or garbage collector use "**memory_ref_count**" ta
     Object *o = strange_function();
     object_ref(o);
     // Use o
-    object_unref(o);
+    object_unref(&o);
+```
 
 # Examples
 
 Memory owner method example:
 
+```C
     struct Example {
     	memory_guarded char *name; // This pointer must not be freed by this object
     	memory_owner   char *id;     // This object must be freed by this object
@@ -104,10 +113,11 @@ Memory owner method example:
       printf("%s\n", example_id(ex));
       example_delete(ex);
     }
-
+```
 
 Reference counting example:
 
+```C
     struct RefCount {
         int count;
         memory_owner Object *obj;
@@ -117,11 +127,12 @@ Reference counting example:
         p->count++;
     }
 
-    void refcount_unref(memory_ref_count struct RefCount *p) {
-        p->count--;
-        if(p->count <= 0) { 
-            free(p->obj);
-            p->obj = NULL;
+    void refcount_unref(memory_ref_count struct RefCount **p) {
+        *p->count--;
+        if(*p->count <= 0) { 
+            free(*p->obj);
+            *p->obj = NULL;
+            *p = NULL;
         }
     }
 
@@ -140,19 +151,24 @@ Reference counting example:
     refcount_ref(p);
     // Use p
     refcount_unref(p);
+```
 
 # **memory_take_possession**
 
 When is refereed to a pointer returned by a function, it means that you have to control the cycle of life of that pointer:
 
+```C
     memory_take_possession char *strdup(memory_guarded const char *str); 
+```
 
 But when is refereed to a function argument means that the function will control the cycle of life of that pointer:
 
+```C
     void function5(memory_take_possession int *a) {
         // Use a
         free(a);
     }
+```
 
 # **memory_keep_alive** and **memory_release_after_of(mem)**
 
@@ -164,6 +180,7 @@ Imagine that you are using an image library that renders a final photo. The obje
 
 Example:
 
+```C
     struct Image { ... };
     struct ImageBuilder { ... };
     void image_builder_add_resource(
@@ -178,16 +195,18 @@ Example:
     // free(img); -> Error the image is need until render
     image_builder_render(builder);
     free(img);
-
+```
 
 # Returning values as function arguments
 
 Sometimes function arguments are used to return values:
-    
+
+```C
     void function3(int a, int *b, int *c) {
         *b *= 2;
         *c = a + *b;
     }
+```
 
 Then these tags must be used:
    
@@ -196,6 +215,7 @@ Then these tags must be used:
 
 In the example:
 
+```C
     void function3(
         int a, 
         int *b memory_guarded memory_ptr_inout, 
@@ -203,25 +223,28 @@ In the example:
     ) {
         *c = a + *b;
     }
+```
 
 More examples:
 
+```C
     void function4(
         int a,
         int *b memory_take_possession memory_ptr_out
     ) {
         b = (int *)malloc(sizeof(int)*a);
     }
-
+```
 
 # memory_owner_of(mem)
 
 Sometimes several pointers can be refereed to the same memory. The code can be complicated and **memory_owner_of(mem)** could help:
 
+```C
     int *b;
     int a = 2 memory_owner_of(b);
     b = &a;
-
+```
 
 # Short version
 
