@@ -6,17 +6,17 @@ Sorry but the only way to solve it is to check those errors in your code.
 
 # Problems
 
-- [Return a variable stored on the stack](#VariableStoredOnStack)
-- [Double free](#DoubleFree)
-- [Use a released pointer](#ReleasedPointer)
-- [Increase a pointer and release](#FreeIncreasedPointer)
-- [Variables are deleted at the end of the block](#DeletedVariables)
-- [Array out of bounds](#ArrayOutOfBounds)
-- [Wrong casting](#WrongCast)
+- [Return a variable stored on the stack](#user-content-VariableStoredOnStack)
+- [Double free](#user-content-DoubleFree)
+- [Use a released pointer](#user-content-ReleasedPointer)
+- [Increase a pointer and release](#user-content-FreeIncreasedPointer)
+- [Variables are deleted at the end of the block](#user-content-DeletedVariables)
+- [Array out of bounds](#user-content-ArrayOutOfBounds)
+- [Wrong casting](#user-content-WrongCast)
 - Memory leaks
-    - [Free after return](#FreeAfterReturn)
-    - [Forget releasing memory](#ForgetFree)
-    - [free() instead the specialized function](#ForgetSpecialized)
+    - [Free after return](#user-content-FreeAfterReturn)
+    - [Forget releasing memory](#user-content-ForgetFree)
+    - [free() instead the specialized function](#user-content-ForgetSpecialized)
 
 
 ## Return a variable stored on the stack <a name='VariableStoredOnStack'></a>
@@ -241,7 +241,7 @@ Check types before cast.
     
 ## Memory leaks
 
-Memory which is no longer needed is not released.
+Memory which is no longer needed is not released. [Valgrind](https://valgrind.org/) can be used to detect it.
 
 ### Free after return <a name='FreeAfterReturn'></a>
 
